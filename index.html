@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مُولّد الأكواد المجاني</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; text-align: center; }
+        .container { max-width: 750px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h1 { color: #38bdf8; margin-bottom: 5px; }
+        p { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+        .api-box { margin-bottom: 15px; text-align: right; }
+        textarea { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 15px; box-sizing: border-box; height: 110px; resize: vertical; margin-top: 5px; }
+        button { background: #10b981; color: white; border: none; padding: 14px 25px; font-size: 16px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; transition: 0.2s; }
+        button:hover { background: #059669; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        .output-container { margin-top: 25px; text-align: left; direction: ltr; }
+        .output-title { text-align: right; direction: rtl; color: #38bdf8; font-weight: bold; margin-bottom: 5px; }
+        pre { background: #090d16; padding: 20px; border-radius: 8px; border: 1px solid #334155; overflow-x: auto; color: #34d399; font-family: 'Courier New', Courier, monospace; min-height: 80px; white-space: pre-wrap; margin: 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🤖 صانع الأكواد المفتوح</h1>
+    <p>اكتب وصف الكود الذي تريده بالأسفل وسيصنعه لك الذكاء الاصطناعي فوراً بدون أي اشتراك أو مفاتيح!</p>
+
+    <!-- صندوق الوصف -->
+    <div class="api-box">
+        <label for="userPrompt" style="color: #cbd5e1; font-weight: bold;">اكتب وصف الكود المطلوب هنا:</label>
+        <textarea id="userPrompt" placeholder="مثال: اكتب كود HTML لصفحة تسجيل دخول احترافية مع التنسيق..."></textarea>
+    </div>
+
+    <button id="genBtn" onclick="generateCode()">توليد الكود البرمجي ✨</button>
+
+    <div class="output-container">
+        <div class="output-title">💻 الكود الناتج:</div>
+        <pre id="outputCode">// اكتب الوصف واضغط على الزر، وسيظهر الكود الحقيقي هنا...</pre>
+    </div>
+</div>
+
+<script>
+async function generateCode() {
+    const prompt = document.getElementById('userPrompt').value.trim();
+    const output = document.getElementById('outputCode');
+    const btn = document.getElementById('genBtn');
+
+    if (!prompt) {
+        alert("من فضلك اكتب وصفاً للكود أولاً.");
+        return;
+    }
+
+    // تجهيز الواجهة
+    btn.disabled = true;
+    btn.innerText = "جاري التفكير وصنع الكود... ⏳";
+    output.innerText = "// يتصل بالذكاء الاصطناعي المفتوح الآن، انتظر ثواني قليلية...";
+
+    try {
+        // نستخدم موديل مخصص ومفتوح للأكواد من Hugging Face (بدون الحاجة لمفتاح خاص)
+        const response = await fetch("https://huggingface.co", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                inputs: `<|system|>\nأنت مبرمج محترف. اكتب فقط الكود البرمجي المطلوب مع تعليقات تشرحه وبدون مقدمات طويله.<\/t>\n<|user|>\n${prompt}<\/t>\n<|assistant|>\n`
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data && data[0] && data[0].generated_text) {
+            // تنظيف النص وعرض الكود النظيف للمستخدم
+            let rawText = data[0].generated_text;
+            let codeOnly = rawText.split("<|assistant|>\n")[1] || rawText;
+            output.innerText = codeOnly;
+        } else {
+            output.innerText = "// لم ينجح الموديل في الاستجابة، يرجى المحاولة مرة أخرى بعد ثوانٍ.";
+        }
+    } catch (error) {
+        output.innerText = "// حدث خطأ في الاتصال بالخادم. يرجى التحقق من الإنترنت.";
+        console.error(error);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "توليد الكود البرمجي ✨";
+    }
+}
+</script>
+
+</body>
+</html>
