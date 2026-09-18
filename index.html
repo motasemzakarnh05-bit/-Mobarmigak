@@ -50,33 +50,37 @@ async function generateCode() {
         return;
     }
 
-    // تجهيز الواجهة
     btn.disabled = true;
     btn.innerText = "جاري التفكير وصنع الكود... ⏳";
-    output.innerText = "// يتصل بالذكاء الاصطناعي المفتوح الآن، انتظر ثواني قليلية...";
+    output.innerText = "// يتصل بالسيرفر السريع الآن، انتظر ثواني قليلة...";
 
     try {
-        // نستخدم موديل مخصص ومفتوح للأكواد من Hugging Face (بدون الحاجة لمفتاح خاص)
+        // استخدام سيرفر Qwen المستقر والسريع جداً للأكواد واللغة العربية
         const response = await fetch("https://huggingface.co", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
-                inputs: `<|system|>\nأنت مبرمج محترف. اكتب فقط الكود البرمجي المطلوب مع تعليقات تشرحه وبدون مقدمات طويله.<\/t>\n<|user|>\n${prompt}<\/t>\n<|assistant|>\n`
+                inputs: `<|im_start|>system\nأنت مبرمج خبير. اكتب الكود البرمجي المطلوب بدقة بالاعتماد على طلب المستخدم، وضع تعليقات واضحة.<|im_end|>\n<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`
             })
         });
 
         const data = await response.json();
         
         if (data && data[0] && data[0].generated_text) {
-            // تنظيف النص وعرض الكود النظيف للمستخدم
             let rawText = data[0].generated_text;
-            let codeOnly = rawText.split("<|assistant|>\n")[1] || rawText;
-            output.innerText = codeOnly;
+            // استخراج الكود النظيف فقط بعد رد المساعد
+            let parts = rawText.split("<|im_start|>assistant\n");
+            let finalCode = parts[parts.length - 1] || rawText;
+            
+            // تنظيف أي وسوم متبقية للذكاء الاصطناعي
+            finalCode = finalCode.replace("<|im_end|>", "");
+            
+            output.innerText = finalCode;
         } else {
-            output.innerText = "// لم ينجح الموديل في الاستجابة، يرجى المحاولة مرة أخرى بعد ثوانٍ.";
+            output.innerText = "// السيرفر مشغول حالياً، يرجى المحاولة مرة أخرى بعد ثوانٍ قليلة.";
         }
     } catch (error) {
-        output.innerText = "// حدث خطأ في الاتصال بالخادم. يرجى التحقق من الإنترنت.";
+        output.innerText = "// حدث خطأ أثناء الاتصال. يرجى التحقق من جودة الإنترنت والمحاولة مجدداً.";
         console.error(error);
     } finally {
         btn.disabled = false;
